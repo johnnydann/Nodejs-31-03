@@ -1,0 +1,69 @@
+html <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Display</title>
+    <style>
+        ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        .level-1 > a {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Menu Structure</h1>
+    <ul id="menu-list"></ul>
+
+    <script>
+        async function fetchMenu() {
+            try {
+                console.log('Đang lấy dữ liệu menu...');
+                const response = await fetch('http://localhost:5000/api/menu'); // Đổi từ '/' thành '/api/menu'
+                if (!response.ok) {
+                    throw new Error(`Lỗi HTTP! Trạng thái: ${response.status}`);
+                }
+                const menuData = await response.json();
+                console.log('Dữ liệu menu nhận được:', menuData);
+
+                const menuList = document.getElementById('menu-list');
+                if (!menuData || menuData.length === 0) {
+                    menuList.innerHTML = '<li>Không có dữ liệu menu để hiển thị.</li>';
+                    return;
+                }
+
+                menuData.forEach(item => {
+                    const liLevel1 = document.createElement('li');
+                    liLevel1.className = 'level-1';
+                    liLevel1.innerHTML = `<a href="${item.URL}">${item.text}</a>`;
+
+                    if (item.children && item.children.length > 0) {
+                        const ulLevel2 = document.createElement('ul');
+                        item.children.forEach(child => {
+                            const liLevel2 = document.createElement('li');
+                            liLevel2.className = 'level-2';
+                            liLevel2.innerHTML = `<a href="${child.URL}">${child.text}</a>`;
+                            ulLevel2.appendChild(liLevel2);
+                        });
+                        liLevel1.appendChild(ulLevel2);
+                    }
+
+                    menuList.appendChild(liLevel1);
+                });
+            } catch (error) {
+                console.error('Lỗi khi lấy dữ liệu menu:', error);
+                const menuList = document.getElementById('menu-list');
+                menuList.innerHTML = '<li>Lỗi khi tải menu. Vui lòng kiểm tra console để biết chi tiết.</li>';
+            }
+        }
+
+        window.onload = fetchMenu;
+    </script>
+</body>
+</html>
